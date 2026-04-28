@@ -1,5 +1,10 @@
-
-using PaymentAPI.DAL.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using PaymentAPI.DAL;
+using PaymentAPI.Domain.Services;
+using PaymentAPI.Domain.UseCases.GetPayment;
+using PaymentAPI.Middleware;
+using System.Text;
 
 namespace PaymentAPI
 {
@@ -9,19 +14,46 @@ namespace PaymentAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssemblyContaining<Program>();
+                cfg.RegisterServicesFromAssemblyContaining<GetPaymentRequestHandler>();
+            });
 
             builder.Services.AddStorage(builder.Configuration.GetConnectionString("DefaultConnection")!)
                 .AddServices();
 
+            builder.Services.AddHttpClient("OrderApi", client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["OrderApi:BaseUrl"]!);
+            });
+            builder.Services.AddScoped<IOrderApiClient, OrderApiClient>();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                };
+            });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -29,12 +61,10 @@ namespace PaymentAPI
             }
 
             app.UseHttpsRedirection();
-
+            app.UseMiddleware<ExceptionHandlerMiddleware>();
+            app.UseAuthentication();
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.Run();
         }
     }

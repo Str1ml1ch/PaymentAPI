@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentAPI.Core.Enums;
 using PaymentAPI.Core.Models;
-using PaymentAPI.DAL.Storage.Filters;
+using PaymentAPI.DAL.Specifications.Payments;
 
 namespace PaymentAPI.DAL.Storage.GetPayments
 {
@@ -24,10 +24,13 @@ namespace PaymentAPI.DAL.Storage.GetPayments
             DateTimeOffset? toDate,
             CancellationToken ct)
         {
-            var query = _context.Payments
-                .FilterByStatus(status)
-                .FilterByProvider(provider)
-                .FilterByDateRange(fromDate, toDate);
+            var query = _context.Payments.AsQueryable();
+            if (status.HasValue)
+                query = query.Where(new PaymentByStatusSpecification(status.Value).ToExpression());
+            if (provider.HasValue)
+                query = query.Where(new PaymentByProviderSpecification(provider.Value).ToExpression());
+            if (fromDate.HasValue || toDate.HasValue)
+                query = query.Where(new PaymentByDateRangeSpecification(fromDate, toDate).ToExpression());
 
             var totalCount = await query.CountAsync(ct);
 

@@ -1,5 +1,6 @@
-﻿using PaymentAPI.Core.Enums;
 using Microsoft.EntityFrameworkCore;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Domain.Storage.UpdatePayment;
 
 namespace PaymentAPI.DAL.Storage.UpdatePayment
 {

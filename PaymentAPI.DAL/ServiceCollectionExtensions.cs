@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using PaymentAPI.Core.Storage.CreatePayment;
 using PaymentAPI.DAL.Storage.CreatePayment;
 using PaymentAPI.DAL.Storage.GetPaymentById;
 using PaymentAPI.DAL.Storage.GetPayments;
 using PaymentAPI.DAL.Storage.RemovePayment;
 using PaymentAPI.DAL.Storage.UpdatePayment;
+using PaymentAPI.Domain.Storage.CreatePayment;
+using PaymentAPI.Domain.Storage.GetPaymentById;
+using PaymentAPI.Domain.Storage.GetPayments;
+using PaymentAPI.Domain.Storage.RemovePayment;
+using PaymentAPI.Domain.Storage.UpdatePayment;
 
 namespace PaymentAPI.DAL
 {

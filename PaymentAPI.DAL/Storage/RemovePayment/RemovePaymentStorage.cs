@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PaymentAPI.Domain.Storage.RemovePayment;
 
 namespace PaymentAPI.DAL.Storage.RemovePayment
 {

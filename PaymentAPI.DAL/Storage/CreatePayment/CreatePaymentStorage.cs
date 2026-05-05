@@ -1,7 +1,7 @@
-﻿using Homework.Ticketing.System.Shared.Enums;
-using PaymentAPI.Core.Enums;
-using PaymentAPI.Core.Storage.CreatePayment;
+using Homework.Ticketing.System.Shared.Enums;
+using PaymentAPI.Domain.Enums;
 using PaymentAPI.DAL.Entities;
+using PaymentAPI.Domain.Storage.CreatePayment;
 
 namespace PaymentAPI.DAL.Storage.CreatePayment
 {

@@ -1,6 +1,6 @@
-﻿using PaymentAPI.Core.Enums;
+using PaymentAPI.Domain.Enums;
 
-namespace PaymentAPI.DAL.Storage.UpdatePayment
+namespace PaymentAPI.Domain.Storage.UpdatePayment
 {
     public interface IUpdatePaymentStorage
     {

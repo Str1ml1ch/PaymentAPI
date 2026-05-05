@@ -1,5 +1,5 @@
-﻿using Homework.Ticketing.System.Shared.Enums;
-using PaymentAPI.Core.Enums;
+using Homework.Ticketing.System.Shared.Enums;
+using PaymentAPI.Domain.Enums;
 using Shared.DAL.Entities;
 
 namespace PaymentAPI.DAL.Entities

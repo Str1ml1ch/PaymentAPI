@@ -1,9 +1,9 @@
 using MediatR;
-using PaymentAPI.Core.Enums;
-using PaymentAPI.DAL.Storage.GetPaymentById;
-using PaymentAPI.DAL.Storage.UpdatePayment;
+using PaymentAPI.Domain.Enums;
 using PaymentAPI.Domain.Exceptions;
 using PaymentAPI.Domain.Services;
+using PaymentAPI.Domain.Storage.GetPaymentById;
+using PaymentAPI.Domain.Storage.UpdatePayment;
 
 namespace PaymentAPI.Domain.UseCases.FailPayment
 {

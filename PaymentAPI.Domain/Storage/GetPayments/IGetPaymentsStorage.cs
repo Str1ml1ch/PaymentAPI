@@ -1,8 +1,8 @@
-﻿using Homework.Ticketing.System.Shared.Models;
-using PaymentAPI.Core.Enums;
-using PaymentAPI.Core.Models;
+using Homework.Ticketing.System.Shared.Models;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Domain.Models;
 
-namespace PaymentAPI.DAL.Storage.GetPayments
+namespace PaymentAPI.Domain.Storage.GetPayments
 {
     public interface IGetPaymentsStorage
     {

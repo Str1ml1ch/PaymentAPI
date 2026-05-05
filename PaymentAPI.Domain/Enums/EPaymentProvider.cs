@@ -1,4 +1,4 @@
-﻿namespace PaymentAPI.Core.Enums
+namespace PaymentAPI.Domain.Enums
 {
     public enum EPaymentProvider
     {

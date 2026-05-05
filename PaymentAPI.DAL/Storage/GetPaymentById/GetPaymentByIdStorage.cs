@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PaymentAPI.Core.Models;
+using Microsoft.EntityFrameworkCore;
+using PaymentAPI.Domain.Models;
+using PaymentAPI.Domain.Storage.GetPaymentById;
 
 namespace PaymentAPI.DAL.Storage.GetPaymentById
 {

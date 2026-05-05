@@ -1,6 +1,6 @@
 using MediatR;
-using PaymentAPI.Core.Enums;
-using PaymentAPI.Core.Storage.CreatePayment;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Domain.Storage.CreatePayment;
 
 namespace PaymentAPI.Domain.UseCases.CreatePayment
 {

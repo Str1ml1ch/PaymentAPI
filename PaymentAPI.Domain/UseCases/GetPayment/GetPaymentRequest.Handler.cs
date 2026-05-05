@@ -1,7 +1,7 @@
 using MediatR;
-using PaymentAPI.Core.Models;
-using PaymentAPI.DAL.Storage.GetPaymentById;
+using PaymentAPI.Domain.Models;
 using PaymentAPI.Domain.Exceptions;
+using PaymentAPI.Domain.Storage.GetPaymentById;
 
 namespace PaymentAPI.Domain.UseCases.GetPayment
 {

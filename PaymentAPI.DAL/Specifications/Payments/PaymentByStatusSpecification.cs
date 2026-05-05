@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using PaymentAPI.Core.Enums;
+using PaymentAPI.Domain.Enums;
 using PaymentAPI.DAL.Entities;
 
 namespace PaymentAPI.DAL.Specifications.Payments

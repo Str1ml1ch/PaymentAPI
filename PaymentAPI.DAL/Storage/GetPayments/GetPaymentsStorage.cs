@@ -1,8 +1,9 @@
-﻿using Homework.Ticketing.System.Shared.Models;
+using Homework.Ticketing.System.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-using PaymentAPI.Core.Enums;
-using PaymentAPI.Core.Models;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Domain.Models;
 using PaymentAPI.DAL.Specifications.Payments;
+using PaymentAPI.Domain.Storage.GetPayments;
 
 namespace PaymentAPI.DAL.Storage.GetPayments
 {

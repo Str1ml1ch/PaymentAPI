@@ -1,7 +1,7 @@
-﻿using Homework.Ticketing.System.Shared.Enums;
-using PaymentAPI.Core.Enums;
+using Homework.Ticketing.System.Shared.Enums;
+using PaymentAPI.Domain.Enums;
 
-namespace PaymentAPI.Core.Storage.CreatePayment
+namespace PaymentAPI.Domain.Storage.CreatePayment
 {
     public interface ICreatePaymentStorage
     {

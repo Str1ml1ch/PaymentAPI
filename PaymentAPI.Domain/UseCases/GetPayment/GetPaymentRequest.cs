@@ -1,5 +1,5 @@
 using MediatR;
-using PaymentAPI.Core.Models;
+using PaymentAPI.Domain.Models;
 
 namespace PaymentAPI.Domain.UseCases.GetPayment
 {

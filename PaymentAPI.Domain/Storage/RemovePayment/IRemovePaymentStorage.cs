@@ -1,4 +1,4 @@
-namespace PaymentAPI.DAL.Storage.RemovePayment
+namespace PaymentAPI.Domain.Storage.RemovePayment
 {
     public interface IRemovePaymentStorage
     {

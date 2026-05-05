@@ -1,6 +1,6 @@
-﻿using PaymentAPI.Core.Models;
+using PaymentAPI.Domain.Models;
 
-namespace PaymentAPI.DAL.Storage.GetPaymentById
+namespace PaymentAPI.Domain.Storage.GetPaymentById
 {
     public interface IGetPaymentByIdStorage
     {

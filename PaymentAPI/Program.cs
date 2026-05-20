@@ -27,6 +27,13 @@ namespace PaymentAPI
             builder.Services.AddStorage(builder.Configuration.GetConnectionString("DefaultConnection")!)
                 .AddServices();
 
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis")
+                    ?? throw new InvalidOperationException("Redis connection string is missing.");
+                options.InstanceName = "PaymentAPI:";
+            });
+
             builder.Services.AddHttpClient("OrderApi", client =>
             {
                 client.BaseAddress = new Uri(builder.Configuration["OrderApi:BaseUrl"]!);

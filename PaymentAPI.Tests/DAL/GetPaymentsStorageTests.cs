@@ -1,26 +1,42 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentAPI.Domain.Enums;
+using Microsoft.EntityFrameworkCore.Storage;
 using PaymentAPI.DAL;
 using PaymentAPI.DAL.Entities;
 using PaymentAPI.DAL.Storage.GetPayments;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Tests.DAL.Infrastructure;
 using Homework.Ticketing.System.Shared.Enums;
 
 namespace PaymentAPI.Tests.DAL;
 
-public class GetPaymentsStorageTests
+[Collection("SqlServer")]
+public class GetPaymentsStorageTests : IAsyncLifetime
 {
-    private static PaymentDbContext CreateContext()
+    private readonly SqlServerContainerFixture _fixture;
+    private PaymentDbContext _context = null!;
+    private IDbContextTransaction _transaction = null!;
+
+    public GetPaymentsStorageTests(SqlServerContainerFixture fixture) => _fixture = fixture;
+
+    public async Task InitializeAsync()
     {
-        var options = new DbContextOptionsBuilder<PaymentDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        return new PaymentDbContext(options);
+        _context = new PaymentDbContext(
+            new DbContextOptionsBuilder<PaymentDbContext>()
+                .UseSqlServer(_fixture.ConnectionString)
+                .Options);
+        _transaction = await _context.Database.BeginTransactionAsync();
     }
 
-    private static void SeedMany(PaymentDbContext ctx, IEnumerable<Payment> payments)
+    public async Task DisposeAsync()
     {
-        ctx.Payments.AddRange(payments);
-        ctx.SaveChanges();
+        await _transaction.RollbackAsync();
+        await _context.DisposeAsync();
+    }
+
+    private void SeedMany(IEnumerable<Payment> payments)
+    {
+        _context.Payments.AddRange(payments);
+        _context.SaveChanges();
     }
 
     private static Payment MakePayment(EPaymentStatus status = EPaymentStatus.Pending,
@@ -41,9 +57,8 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_ReturnsAll_WhenNoFilters()
     {
-        using var ctx = CreateContext();
-        SeedMany(ctx, [MakePayment(), MakePayment(), MakePayment()]);
-        var storage = new GetPaymentsStorage(ctx);
+        SeedMany([MakePayment(), MakePayment(), MakePayment()]);
+        var storage = new GetPaymentsStorage(_context);
 
         var result = await storage.GetAsync(1, 10, null, null, null, null, CancellationToken.None);
 
@@ -54,13 +69,12 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_FiltersByStatus()
     {
-        using var ctx = CreateContext();
-        SeedMany(ctx, [
+        SeedMany([
             MakePayment(EPaymentStatus.Pending),
             MakePayment(EPaymentStatus.Completed),
             MakePayment(EPaymentStatus.Pending)
         ]);
-        var storage = new GetPaymentsStorage(ctx);
+        var storage = new GetPaymentsStorage(_context);
 
         var result = await storage.GetAsync(1, 10, EPaymentStatus.Pending, null, null, null, CancellationToken.None);
 
@@ -71,13 +85,12 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_FiltersByProvider()
     {
-        using var ctx = CreateContext();
-        SeedMany(ctx, [
+        SeedMany([
             MakePayment(provider: EPaymentProvider.Stripe),
             MakePayment(provider: EPaymentProvider.PayPal),
             MakePayment(provider: EPaymentProvider.Stripe)
         ]);
-        var storage = new GetPaymentsStorage(ctx);
+        var storage = new GetPaymentsStorage(_context);
 
         var result = await storage.GetAsync(1, 10, null, EPaymentProvider.Stripe, null, null, CancellationToken.None);
 
@@ -88,15 +101,14 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_FiltersByDateRange()
     {
-        using var ctx = CreateContext();
         var old = DateTimeOffset.UtcNow.AddDays(-10);
         var recent = DateTimeOffset.UtcNow;
-        SeedMany(ctx, [
+        SeedMany([
             MakePayment(createdAt: old),
             MakePayment(createdAt: recent),
             MakePayment(createdAt: recent)
         ]);
-        var storage = new GetPaymentsStorage(ctx);
+        var storage = new GetPaymentsStorage(_context);
 
         var from = DateTimeOffset.UtcNow.AddDays(-1);
         var result = await storage.GetAsync(1, 10, null, null, from, null, CancellationToken.None);
@@ -107,9 +119,8 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_PaginatesCorrectly()
     {
-        using var ctx = CreateContext();
-        SeedMany(ctx, Enumerable.Range(0, 5).Select(_ => MakePayment()));
-        var storage = new GetPaymentsStorage(ctx);
+        SeedMany(Enumerable.Range(0, 5).Select(_ => MakePayment()));
+        var storage = new GetPaymentsStorage(_context);
 
         var result = await storage.GetAsync(1, 2, null, null, null, null, CancellationToken.None);
 
@@ -120,9 +131,8 @@ public class GetPaymentsStorageTests
     [Fact]
     public async Task GetAsync_ReturnsEmpty_WhenNoMatch()
     {
-        using var ctx = CreateContext();
-        SeedMany(ctx, [MakePayment(EPaymentStatus.Pending)]);
-        var storage = new GetPaymentsStorage(ctx);
+        SeedMany([MakePayment(EPaymentStatus.Pending)]);
+        var storage = new GetPaymentsStorage(_context);
 
         var result = await storage.GetAsync(1, 10, EPaymentStatus.Completed, null, null, null, CancellationToken.None);
 

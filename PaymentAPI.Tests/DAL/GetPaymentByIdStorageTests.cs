@@ -1,24 +1,39 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentAPI.Domain.Enums;
+using Microsoft.EntityFrameworkCore.Storage;
 using PaymentAPI.DAL;
 using PaymentAPI.DAL.Entities;
 using PaymentAPI.DAL.Storage.GetPaymentById;
+using PaymentAPI.Domain.Enums;
+using PaymentAPI.Tests.DAL.Infrastructure;
 using Homework.Ticketing.System.Shared.Enums;
 
 namespace PaymentAPI.Tests.DAL;
 
-public class GetPaymentByIdStorageTests
+[Collection("SqlServer")]
+public class GetPaymentByIdStorageTests : IAsyncLifetime
 {
-    private static PaymentDbContext CreateContext()
+    private readonly SqlServerContainerFixture _fixture;
+    private PaymentDbContext _context = null!;
+    private IDbContextTransaction _transaction = null!;
+
+    public GetPaymentByIdStorageTests(SqlServerContainerFixture fixture) => _fixture = fixture;
+
+    public async Task InitializeAsync()
     {
-        var options = new DbContextOptionsBuilder<PaymentDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        return new PaymentDbContext(options);
+        _context = new PaymentDbContext(
+            new DbContextOptionsBuilder<PaymentDbContext>()
+                .UseSqlServer(_fixture.ConnectionString)
+                .Options);
+        _transaction = await _context.Database.BeginTransactionAsync();
     }
 
-    private static Payment Seed(PaymentDbContext ctx,
-        Guid? id = null, Guid? orderId = null, string txnId = "txn-1",
+    public async Task DisposeAsync()
+    {
+        await _transaction.RollbackAsync();
+        await _context.DisposeAsync();
+    }
+
+    private Payment Seed(Guid? id = null, Guid? orderId = null, string txnId = "txn-1",
         EPaymentStatus status = EPaymentStatus.Pending)
     {
         var p = new Payment
@@ -32,16 +47,15 @@ public class GetPaymentByIdStorageTests
             PaymentProvider = EPaymentProvider.Stripe,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        ctx.Payments.Add(p);
-        ctx.SaveChanges();
+        _context.Payments.Add(p);
+        _context.SaveChanges();
         return p;
     }
 
     [Fact]
     public async Task GetByIdAsync_ReturnsNull_WhenNotFound()
     {
-        using var ctx = CreateContext();
-        var storage = new GetPaymentByIdStorage(ctx);
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.GetByIdAsync(Guid.NewGuid(), CancellationToken.None);
 
@@ -51,9 +65,8 @@ public class GetPaymentByIdStorageTests
     [Fact]
     public async Task GetByIdAsync_ReturnsModel_WhenFound()
     {
-        using var ctx = CreateContext();
-        var payment = Seed(ctx);
-        var storage = new GetPaymentByIdStorage(ctx);
+        var payment = Seed();
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.GetByIdAsync(payment.Id, CancellationToken.None);
 
@@ -68,10 +81,9 @@ public class GetPaymentByIdStorageTests
     [Fact]
     public async Task GetByOrderIdAsync_ReturnsModel_WhenFound()
     {
-        using var ctx = CreateContext();
         var orderId = Guid.NewGuid();
-        var payment = Seed(ctx, orderId: orderId);
-        var storage = new GetPaymentByIdStorage(ctx);
+        var payment = Seed(orderId: orderId);
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.GetByOrderIdAsync(orderId, CancellationToken.None);
 
@@ -82,9 +94,8 @@ public class GetPaymentByIdStorageTests
     [Fact]
     public async Task GetByExternalTransactionIdAsync_ReturnsModel_WhenFound()
     {
-        using var ctx = CreateContext();
-        Seed(ctx, txnId: "my-txn-999");
-        var storage = new GetPaymentByIdStorage(ctx);
+        Seed(txnId: "my-txn-999");
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.GetByExternalTransactionIdAsync("my-txn-999", CancellationToken.None);
 
@@ -95,8 +106,7 @@ public class GetPaymentByIdStorageTests
     [Fact]
     public async Task IsExistsAsync_ReturnsFalse_WhenNotFound()
     {
-        using var ctx = CreateContext();
-        var storage = new GetPaymentByIdStorage(ctx);
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.IsExistsAsync(Guid.NewGuid(), CancellationToken.None);
 
@@ -106,9 +116,8 @@ public class GetPaymentByIdStorageTests
     [Fact]
     public async Task IsExistsAsync_ReturnsTrue_WhenFound()
     {
-        using var ctx = CreateContext();
-        var payment = Seed(ctx);
-        var storage = new GetPaymentByIdStorage(ctx);
+        var payment = Seed();
+        var storage = new GetPaymentByIdStorage(_context);
 
         var result = await storage.IsExistsAsync(payment.Id, CancellationToken.None);
 
